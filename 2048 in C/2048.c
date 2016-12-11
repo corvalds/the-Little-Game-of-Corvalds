@@ -11,6 +11,7 @@
 
 int gameOver = 0;
 int invalidAction = 0;
+int enableMove = 0;
 typedef struct{
 	int x, y;
 	int isAdd;
@@ -71,17 +72,27 @@ void PrintPlayGround(PlayGround *ground){
 	printf("\t################################################\n");
 }
 
-void ReactAddition(PlayGround *ground, int hor, int ver, int preHor, int preVer){
+void ReactAddition(PlayGround *ground, int hor, int ver, int preHor, int preVer, int check){
 	int tmpInt, iterInt, tmpStrLen, forward;
 	char tmpStr[MAX_DIGIT];
 	
-	if(strcmp(ground->reacts[hor][ver].value, EMPTY_REACT) == 0)
+	if(strcmp(ground->reacts[hor][ver].value, EMPTY_REACT) == 0){
+		enableMove = 1;
 		return;
+	}
 	if(strcmp(ground->reacts[preHor][preVer].value, EMPTY_REACT) == 0){
+		if(check){
+			enableMove = 1;
+			return;
+		}
 		strcpy(ground->reacts[preHor][preVer].value, ground->reacts[hor][ver].value);
 		strcpy(ground->reacts[hor][ver].value, EMPTY_REACT);
 		invalidAction = 0;
 	} else if(strcmp(ground->reacts[preHor][preVer].value, ground->reacts[hor][ver].value) == 0 && !ground->reacts[preHor][preVer].isAdd && !ground->reacts[hor][ver].isAdd){
+		if(check){
+			enableMove = 1;
+			return;
+		}
 		tmpInt = atoi(ground->reacts[preHor][preVer].value) + atoi(ground->reacts[hor][ver].value);
 		if(tmpInt == FINALGOAL)
 			gameOver = 1;
@@ -101,7 +112,7 @@ void ReactAddition(PlayGround *ground, int hor, int ver, int preHor, int preVer)
 	}
 }
 
-void ReactGlide(PlayGround *ground, int isHorizontal, int moveDirection, int x, int y){
+void ReactGlide(PlayGround *ground, int isHorizontal, int moveDirection, int x, int y, int check){
 	int hor = x, ver = y, preHor = x, preVer = y;
 	
 	while(1){
@@ -128,11 +139,11 @@ void ReactGlide(PlayGround *ground, int isHorizontal, int moveDirection, int x, 
 					break;
 			}
 		}
-		ReactAddition(ground, hor, ver, preHor, preVer);
+		ReactAddition(ground, hor, ver, preHor, preVer, check);
 	}
 }
 
-void Move(PlayGround *ground, int isHorizontal, int moveDirection){
+void Move(PlayGround *ground, int isHorizontal, int moveDirection, int check){
 	int iterEnd = 0, isFirst = 1;
 	int x, y, hor, ver, preHor, preVer;
 	
@@ -180,7 +191,7 @@ void Move(PlayGround *ground, int isHorizontal, int moveDirection){
 			else if(!isHorizontal && (hor < 0 || hor >= ROWNUM))
 				break;
 			//·½¿éÒÆ¶¯ 
-			ReactGlide(ground, isHorizontal, moveDirection, hor, ver);
+			ReactGlide(ground, isHorizontal, moveDirection, hor, ver, check);
 		}
 		if(iterEnd)
 			break;
@@ -190,16 +201,31 @@ void Move(PlayGround *ground, int isHorizontal, int moveDirection){
 			ground->reacts[x][y].isAdd = 0;
 }
 
+void CheckEnableMove(PlayGround *ground){
+	Move(ground, 1, 1, 1);
+	Move(ground, 1, 0, 1);
+	Move(ground, 0, 0, 1);
+	Move(ground, 0, 1, 1);
+}
+
 void HandleOrder(PlayGround *ground, char order){
 	switch(order){
 		case 65:;
-		case 97:Move(ground, 1, 1);break; //a
+		case 97:
+			Move(ground, 1, 1, 0);
+			break; //a
 		case 68:;
-		case 100:Move(ground, 1, 0);break; //d
+		case 100:
+			Move(ground, 1, 0, 0);
+			break; //d
 		case 83:;
-		case 115:Move(ground, 0, 0);break; //s
+		case 115:
+			Move(ground, 0, 0, 0);
+			break; //s
 		case 87:;
-		case 119:Move(ground, 0, 1);break; //w
+		case 119:
+			Move(ground, 0, 1, 0);
+			break; //w
 	}
 }
 
@@ -213,11 +239,15 @@ int main(){
 		if(!invalidAction)
 			CreateNewElem(ground);
 		invalidAction = 1;
+		enableMove = 0;
 		PrintPlayGround(ground);
 		order = getch();
 		fflush(stdin);
 		HandleOrder(ground, order);
-		if(gameOver)
+		CheckEnableMove(ground);
+		if(gameOver) //win
+			break;
+		if(!enableMove) //defeat
 			break;
 		system("cls");
 	}
