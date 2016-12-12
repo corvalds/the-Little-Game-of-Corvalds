@@ -9,12 +9,11 @@
 #define EMPTY_REACT "       "
 #define FINALGOAL 2048
 
-int gameOver = 0;
-int invalidAction = 0;
-int enableMove = 0;
+int gameOver = 0; //是否胜利的标识符 
+int invalidAction = 0; //是否为非法操作的标识符 
+int enableMove = 0; //是否可以移动的标识符 
 typedef struct{
-	int x, y;
-	int isAdd;
+	int isAdd; //本回合内是否已经进行过加法 
 	char value[MAX_DIGIT];
 }React;
 typedef struct{
@@ -22,7 +21,7 @@ typedef struct{
 	int emptyReact; //场地中空的方块的个数 
 }PlayGround;
 
-void InitPlayGround(PlayGround *ground){
+void InitPlayGround(PlayGround *ground){ //对游戏数据进行初始化 
 	int x, y, pos;
 	
 	for(x = 0;x < ROWNUM;x++){
@@ -35,7 +34,7 @@ void InitPlayGround(PlayGround *ground){
 }
 
 //优化随机生成的算法 
-void CreateNewElem(PlayGround *ground){
+void CreateNewElem(PlayGround *ground){ //创建新的元素 
 	int x, y;
 	int i;
 	
@@ -53,7 +52,7 @@ void CreateNewElem(PlayGround *ground){
 		
 }
 
-void PrintPlayGround(PlayGround *ground){
+void PrintPlayGround(PlayGround *ground){ //打印游戏场地 
 	int x, y;
 	
 	printf("\t################################################\n");
@@ -72,7 +71,7 @@ void PrintPlayGround(PlayGround *ground){
 	printf("\t################################################\n");
 }
 
-void ReactAddition(PlayGround *ground, int hor, int ver, int preHor, int preVer, int check){
+void ReactAddition(PlayGround *ground, int hor, int ver, int preHor, int preVer, int check){ //处理方块相加的逻辑 
 	int tmpInt, iterInt, tmpStrLen, forward;
 	char tmpStr[MAX_DIGIT];
 	
@@ -112,7 +111,7 @@ void ReactAddition(PlayGround *ground, int hor, int ver, int preHor, int preVer,
 	}
 }
 
-void ReactGlide(PlayGround *ground, int isHorizontal, int moveDirection, int x, int y, int check){
+void ReactGlide(PlayGround *ground, int isHorizontal, int moveDirection, int x, int y, int check){ //实现方块滑动的逻辑 
 	int hor = x, ver = y, preHor = x, preVer = y;
 	
 	while(1){
@@ -143,7 +142,7 @@ void ReactGlide(PlayGround *ground, int isHorizontal, int moveDirection, int x, 
 	}
 }
 
-void Move(PlayGround *ground, int isHorizontal, int moveDirection, int check){
+void Move(PlayGround *ground, int isHorizontal, int moveDirection, int check){ //选择要移动的方块 
 	int iterEnd = 0, isFirst = 1;
 	int x, y, hor, ver, preHor, preVer;
 	
@@ -201,14 +200,14 @@ void Move(PlayGround *ground, int isHorizontal, int moveDirection, int check){
 			ground->reacts[x][y].isAdd = 0;
 }
 
-void CheckEnableMove(PlayGround *ground){
+void CheckEnableMove(PlayGround *ground){ //检查是否已经无路可走 
 	Move(ground, 1, 1, 1);
 	Move(ground, 1, 0, 1);
 	Move(ground, 0, 0, 1);
 	Move(ground, 0, 1, 1);
 }
 
-void HandleOrder(PlayGround *ground, char order){
+void HandleOrder(PlayGround *ground, char order){ //处理用户输入 
 	switch(order){
 		case 65:;
 		case 97:
@@ -235,7 +234,7 @@ int main(){
 	
 	ground = malloc(sizeof(PlayGround));
 	InitPlayGround(ground);
-	while(1){
+	while(1){ //主循环 
 		if(!invalidAction)
 			CreateNewElem(ground);
 		invalidAction = 1;
@@ -245,9 +244,9 @@ int main(){
 		fflush(stdin);
 		HandleOrder(ground, order);
 		CheckEnableMove(ground);
-		if(gameOver) //win
+		if(gameOver) //游戏胜利 
 			break;
-		if(!enableMove) //defeat
+		if(!enableMove) //游戏失败
 			break;
 		system("cls");
 	}
